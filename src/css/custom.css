@@ -1,0 +1,16 @@
+body {
+    padding: 5px;
+}
+
+.winningPlayer {
+    color: green;
+}
+
+.losingPlayer {
+    color: red;
+}
+
+.tableDiv {
+    padding-left: 20px;
+    padding-right: 20px;
+}
