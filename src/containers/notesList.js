@@ -8,7 +8,7 @@ import { connect } from "react-redux";
 //App Imports
 import { WaitSpinner } from '../components/waitSpinner';
 import { getListOfNotes } from '../actions/actions';
-import { convertSecondsToDate } from '../actions/utility';
+import Note from './note';
 
 class NotesList extends Component {
     constructor(props) {
@@ -16,12 +16,14 @@ class NotesList extends Component {
 
         this.state = {
             errorText: '',
-            showWaitSpinner: false
+            showWaitSpinner: false,
+            sortNotesBy: "Date"
         }
 
         //bindings
         this.handleWaitSpinner = this.handleWaitSpinner.bind(this);
         this.handleError = this.handleError.bind(this);
+        this.renderMySort = this.renderMySort.bind(this);
     }
 
     handleWaitSpinner(displayTheWaitSpinner) {
@@ -45,21 +47,12 @@ class NotesList extends Component {
         console.log("Leaving componentDidMount");
     }
 
-    
-
     formatNotesListMap(noteObject, arrayIndex) {
 
         return (
             <tr key={"noteObjectRenderRow" + arrayIndex}>
                 <td key={"noteObjectRenderCell" + arrayIndex}>
-                    <div className="card padding-medium" key={"noteObjectRenderCard" + arrayIndex} >
-                        <div className="row text-right tableDiv" key={"noteObjectRenderTime" + arrayIndex} >
-                            Noted on: { convertSecondsToDate(noteObject.createdAt) }
-                        </div>
-                        <div className="row text-left tableDiv">
-                            {noteObject.note}
-                        </div>
-                    </div>
+                    <Note noteId={noteObject.id} />
                 </td>
             </tr>
         ); //end return
@@ -70,32 +63,67 @@ class NotesList extends Component {
         return secondElement.createdAt - firstElement.createdAt;
     }
 
+    sortArrayByVotes(firstElement, secondElement) {
+        let firstElementVoteScore = firstElement.upVote + firstElement.downVote;
+        let secondElementVoteScore = secondElement.upVote + secondElement.downVote;
+        return secondElementVoteScore - firstElementVoteScore;
+    }
+
+    setSortState(sortBy) {
+        this.setState({sortNotesBy: sortBy});
+    }
+
+    renderMySort() {
+        return(
+            <span>
+                {this.state.sortNotesBy === "Date" ? <b><a onClick={() => this.setSortState("Date")}>Date</a></b> : <a onClick={() => this.setSortState("Date")}>Date</a>} 
+                 | 
+                {this.state.sortNotesBy === "Vote" ? <b><a onClick={() => this.setSortState("Vote")}>Vote</a></b> : <a onClick={() => this.setSortState("Vote")}>Vote</a>} 
+            </span>
+        )
+
+    }
+
     render() {
         //debug
         //console.log(this.props); //comenting out as this triggers on every keystroke
 
-        let localSortedArray = this.props.listOfNotes.slice().sort(this.sortArrayByDateTime);
+        let localSortedArray = [];
+        if (this.state.sortNotesBy === "Date")
+        {
+            localSortedArray = this.props.listOfNotes.slice().sort(this.sortArrayByDateTime);
+        }
+        else
+        {
+            localSortedArray = this.props.listOfNotes.slice().sort(this.sortArrayByVotes);
+            console.log(localSortedArray);
+        }
 
         return (
 
-            <div className="card padding-medium">
-                {this.state.showWaitSpinner ?
-                    <WaitSpinner />
-                    :   
-                    <div>
-                        {this.state.errorText.trim() !== "" ?
-                            <div className="row text-center">
-                                <span class="error">{this.state.errorText}</span>
-                            </div>
-                            :
-                            <table className="table scrollable">
-                                <tbody style={{height: "500px"}}>
-                                    { localSortedArray.map(this.formatNotesListMap) }
-                                </tbody>
-                            </table>
-                        }
-                    </div>
-                }
+            <div>
+                <div className="row text-right tableDiv">
+                    Sort By: {this.renderMySort()}
+                </div>
+                <div className="card padding-medium">
+                    {this.state.showWaitSpinner ?
+                        <WaitSpinner />
+                        :   
+                        <div>
+                            {this.state.errorText.trim() !== "" ?
+                                <div className="row text-center">
+                                    <span class="error">{this.state.errorText}</span>
+                                </div>
+                                :
+                                <table className="table scrollable">
+                                    <tbody style={{height: "500px"}}>
+                                        { localSortedArray.map(this.formatNotesListMap) }
+                                    </tbody>
+                                </table>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
 
         ); //end return

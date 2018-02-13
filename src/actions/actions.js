@@ -34,12 +34,9 @@ export function getListOfNotes (waitFlag, errorFunction)
     //specify local mockAPI path
     let mockAPIPath = "http://5a830fae98bd81001246c8ba.mockapi.io/anonymousNote/";
 
-    console.log("In getListOfNotes - after setting mockAPIPath");
-
     return (dispatch) => {
         //set state var to turn on the loading/wait spinner
-        //dispatch(() => waitFlag(true));
-        console.log("In getListOfNotes Return");
+        dispatch(() => waitFlag(true));
 
         //lets get that list of notes!
         axios.get(mockAPIPath)
@@ -81,7 +78,9 @@ export function pushNewNoteOut (noteText, waitFlag, errorFunction)
 
         //create local object for data to send to MockAPI
         let anonymousNoteObject = {
-            note: noteText
+            note: noteText,
+            upVote: 0,
+            downVote: 0
         };
 
         //debug - lets see what we're sending
@@ -117,3 +116,59 @@ export function pushNewNoteOut (noteText, waitFlag, errorFunction)
     } //end return
 
 } //end of pushNewNoteOut
+
+export function updateNoteVote (noteId, newDownVote, newUpVote, waitFlag, errorFunction)
+{
+    console.log("Entering updateNoteVote");
+
+    let mockAPIPath = "http://5a830fae98bd81001246c8ba.mockapi.io/anonymousNote/";
+
+    console.log("updateNoteVote - after setting API path");
+
+    return (dispatch) => {
+        console.log("updateNoteVote - in return");
+
+        //set waitFlag to true to display the waitflag in the UI
+        dispatch(() => waitFlag(true));
+
+        //create local object for data to send to MockAPI
+        let noteVoteUpdateObject = {
+            id: noteId,
+            upVote: newUpVote,
+            downVote: newDownVote
+        };
+
+        //debug - lets see what we're sending
+        console.log(noteVoteUpdateObject);
+
+        //call mockAPI with path and NOTE ID
+        axios.put(mockAPIPath + noteId, noteVoteUpdateObject)
+            .then((response) => {
+                //Success!! :)
+                console.log("mockAPI Post - response: ", response);
+
+                //set state var to turn off wait spinner
+                //dispatch(() => waitFlag(false));
+
+                //update store with list of users
+                dispatch(getListOfNotes(waitFlag, errorFunction));
+                //dispatch(() => successFunction(playerData));
+            })
+            .catch((error) => {
+                //Failure!
+                console.log("FAILED to update Note Vote - mockAPI - error: ", error);
+
+                //set state var to turn off wait spinner
+                dispatch(() => waitFlag(false));
+
+                //update state indicating error
+                //send error text back up to the UI - should be more descriptive... but time
+                dispatch(() => errorFunction('Error Registering Vote, Please Try Again'));
+            })
+
+            //debug
+            console.log("Leaving updateNoteVote");
+
+    } //end return
+
+} //end of updateNoteVote
